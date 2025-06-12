@@ -1,0 +1,127 @@
+# Flutter Project Rules for Cursor AI
+
+You are an expert Flutter developer working on this project. Follow these guidelines:
+
+## Code Quality & Style
+
+- Always use explicit types - avoid 'var' and 'dynamic' unless absolutely necessary
+- Use PascalCase for classes, enums, and typedefs
+- Use camelCase for variables, functions, and parameters
+- Use snake_case for file names
+- Add meaningful comments for complex business logic
+- Keep functions under 20 lines when possible
+- Use const constructors wherever possible for performance
+
+## Flutter-Specific Guidelines
+
+- Always use StatelessWidget when state is not needed
+- Prefer composition over inheritance
+- Use named parameters for widget constructors with more than 2 parameters
+- Extract complex widgets into separate files
+- Use proper folder structure: lib/screens, lib/widgets, lib/models, lib/services
+- Always dispose controllers, streams, and listeners properly
+- Use Theme.of(context) for accessing theme data
+- Prefer MediaQuery.sizeOf(context) over MediaQuery.of(context).size
+
+## Performance & Best Practices
+
+- Use ListView.builder for long lists
+- Implement proper error handling with try-catch blocks
+- Use async/await instead of .then() for readability
+- Always handle loading and error states in UI
+- Use const widgets to reduce rebuilds
+- Avoid using Expanded inside SingleChildScrollView
+- Use SizedBox instead of Container when only sizing is needed
+
+## GetX State Management
+
+- Use GetXController for business logic and state management
+- Always extend GetxController, not GetX widget unless necessary
+- Use .obs for reactive variables (e.g., var count = 0.obs;)
+- Use Obx() widget for reactive UI updates
+- Use Get.put() for dependency injection in controllers
+- Use Get.lazyPut() for controllers that aren't immediately needed
+- Use Get.find() to retrieve controllers in widgets
+- Avoid using GetBuilder unless you need manual updates
+- Use GetX bindings for proper dependency management
+- Keep controllers lightweight - delegate heavy operations to services
+
+## MVC Pattern Structure
+
+- _Models_: Data classes in lib/models/ - use freezed or json_annotation
+- _Views_: UI widgets in lib/views/ - should only handle UI logic
+- _Controllers_: Business logic in lib/controllers/ - extend GetxController
+- Additional folders: lib/services/, lib/routes/, lib/bindings/
+- Views should never directly access models - always go through controllers
+- Controllers handle all business logic, API calls, and state management
+- Models are pure data classes with no business logic
+
+## GetX Routing & Navigation
+
+- Use GetX named routes with Get.toNamed()
+- Define routes in separate routes file
+- Use GetX bindings to inject dependencies per route
+- Prefer Get.offNamed() for replacing routes
+- Use Get.back() instead of Navigator.pop()
+- Pass data between screens using Get.arguments or Get.parameters
+
+## Code Organization
+
+- Follow MVC structure: separate views, controllers, and models
+- Controllers in lib/controllers/ - one controller per feature/screen
+- Views in lib/views/ - organized by feature or screen
+- Models in lib/models/ - shared data structures
+- Services in lib/services/ - API calls, local storage, external integrations
+- Use barrel exports (index.dart files) for clean imports
+
+## Testing & Documentation
+
+- Write unit tests for business logic and utility functions
+- Add widget tests for custom widgets
+- Document public APIs with dart doc comments
+- Include examples in documentation for complex widgets
+
+## Error Handling
+
+- Always validate user inputs
+- Handle network errors gracefully
+- Show user-friendly error messages
+- Log errors for debugging but don't expose sensitive info
+
+## Dependencies & Imports
+
+- Prefer official packages over third-party when available
+- Keep pubspec.yaml organized with comments
+- Use relative imports for local files
+- Group imports: dart libraries, flutter libraries, third-party packages, local files
+
+## GetX Best Practices & Performance
+
+- Use GetX reactive programming (.obs) for UI that needs to update
+- Use regular variables in controllers for non-reactive data
+- Dispose resources in onClose() method of controllers
+- Use GetConnect for HTTP requests within controllers
+- Create separate service classes for API calls and business logic
+- Use GetStorage for simple local storage needs
+- Implement proper error handling in controllers with try-catch
+- Use GetX translations (Get.tr()) for internationalization
+- Keep controllers focused on single responsibility
+
+## MVC Communication Flow
+
+- Views communicate with Controllers through method calls and reactive variables
+- Controllers communicate with Models through service layer
+- Controllers update reactive variables to trigger UI updates
+- Use GetX dependency injection to maintain loose coupling
+- Avoid direct widget-to-widget communication - use controllers as intermediaries
+
+When generating code:
+
+1. Always follow GetX + MVC pattern structure
+2. Create controllers that extend GetxController for business logic
+3. Build views that use Obx() for reactive UI updates
+4. Separate concerns: Views for UI, Controllers for logic, Models for data
+5. Use GetX dependency injection and routing
+6. Provide complete, working code examples with proper error handling
+7. Include GetX best practices and performance optimizations
+8. Ask for clarification if requirements are unclear
