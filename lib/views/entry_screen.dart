@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/navigation_controller.dart';
 import '../controllers/theme_controller.dart';
+import '../bindings/history_binding.dart';
 import 'home_screen.dart';
 import 'history_screen.dart';
 import 'profile_screen.dart';
@@ -13,7 +14,7 @@ class EntryScreen extends StatelessWidget {
 
   final List<Widget> _screens = [
     HomeScreen(),
-    HistoryScreen(),
+    const HistoryScreen(),
     ProfileScreen(),
   ];
 
@@ -46,23 +47,32 @@ class EntryScreen extends StatelessWidget {
         ],
       ),
       body: Obx(
-        () => _screens[controller.currentIndex.value],
+        () {
+          // Initialize HistoryBinding when history tab is selected
+          if (controller.currentIndex.value == 1) {
+            HistoryBinding().dependencies();
+          }
+          return _screens[controller.currentIndex.value];
+        },
       ),
       bottomNavigationBar: Obx(
-        () => BottomNavigationBar(
-          currentIndex: controller.currentIndex.value,
-          onTap: controller.changePage,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+        () => NavigationBar(
+          selectedIndex: controller.currentIndex.value,
+          onDestinationSelected: controller.changePage,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history),
+            NavigationDestination(
+              icon: Icon(Icons.history_outlined),
+              selectedIcon: Icon(Icons.history),
               label: 'History',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
               label: 'Profile',
             ),
           ],

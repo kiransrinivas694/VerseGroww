@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/profile_option.dart';
+import '../controllers/auth_controller.dart';
 
 class ProfileController extends GetxController {
   final RxList<ProfileOption> options = <ProfileOption>[].obs;
+  final AuthController _authController = Get.find<AuthController>();
 
   @override
   void onInit() {
@@ -52,34 +54,35 @@ class ProfileController extends GetxController {
       ProfileOption(
         title: 'Logout',
         icon: Icons.logout_rounded,
-        onTap: () {
-          Get.dialog(
-            AlertDialog(
-              title: const Text('Logout'),
-              content: const Text('Are you sure you want to logout?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Get.back(),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // TODO: Implement logout functionality
-                    Get.back();
-                    Get.snackbar(
-                      'Logout',
-                      'Logout feature will be available soon!',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                  child: const Text('Logout'),
-                ),
-              ],
-            ),
-          );
-        },
         iconColor: Colors.red,
+        onTap: () => _showLogoutConfirmation(),
       ),
     ];
+  }
+
+  void _showLogoutConfirmation() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back(); // Close dialog
+              await _authController.signOut();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
   }
 }

@@ -1,40 +1,79 @@
 import 'package:get/get.dart';
 import 'package:home_widget/home_widget.dart';
 import '../models/verse.dart';
+import '../services/verse_service.dart';
 
 class HomeController extends GetxController {
-  final Rx<Verse> todayVerse = const Verse(
-    name: 'John 3:16',
-    text:
-        'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
-    reference: 'New International Version',
-  ).obs;
+  final VerseService _verseService = VerseService();
+  final Rx<Verse?> todayVerse = Rx<Verse?>(null);
+  final RxBool isLoading = false.obs;
+  final RxString selectedMood = 'peaceful'.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _updateWidget();
+    loadTodayVerse();
+    // Set up widget update interval
+    HomeWidget.setAppGroupId('group.com.vrmg.versegroww');
+    HomeWidget.registerBackgroundCallback(backgroundCallback);
   }
 
-  // This will be replaced with actual API call later
-  void refreshVerse() {
-    // Simulating API call
-    todayVerse.value = const Verse(
-      name: 'Philippians 4:13',
-      text: 'I can do all things through Christ who strengthens me.',
-      reference: 'New International Version',
-    );
-    _updateWidget();
+  // Background callback for widget updates
+  @pragma('vm:entry-point')
+  static Future<void> backgroundCallback(Uri? uri) async {
+    if (uri?.host == 'updateverse') {
+      final controller = Get.find<HomeController>();
+      await controller.loadTodayVerse();
+    }
   }
 
-  Future<void> _updateWidget() async {
+  Future<void> loadTodayVerse() async {
     try {
-      await HomeWidget.saveWidgetData('verse_name', todayVerse.value.name);
-      await HomeWidget.saveWidgetData('verse_text', todayVerse.value.text);
+      isLoading.value = true;
+      final verse = await _verseService.getTodayVerse(selectedMood.value);
+      todayVerse.value = verse;
+
+      // Update the widget with new verse data
+      if (verse != null) {
+        await _updateWidget(verse);
+      }
+    } catch (e) {
+      print('Error loading today\'s verse: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to load today\'s verse. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void updateMood(String mood) {
+    selectedMood.value = mood;
+    loadTodayVerse();
+  }
+
+  Future<void> refreshVerse() async {
+    await loadTodayVerse();
+  }
+
+  Future<void> _updateWidget(Verse verse) async {
+    try {
+      // Save verse data for the widget
+      await HomeWidget.saveWidgetData('verse_name', verse.name);
+      await HomeWidget.saveWidgetData('verse_text', verse.text);
+      await HomeWidget.saveWidgetData('verse_reference', verse.reference);
+      await HomeWidget.saveWidgetData(
+          'last_updated', DateTime.now().toIso8601String());
+
+      // Update the widget
       await HomeWidget.updateWidget(
         androidName: 'VerseWidgetProvider',
         iOSName: 'VerseWidget',
       );
+
+      print('Widget updated successfully with today\'s verse');
     } catch (e) {
       print('Error updating widget: $e');
     }

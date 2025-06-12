@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../models/verse.dart';
+import 'widget_customization_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key}) {
@@ -33,6 +34,31 @@ class HomeScreen extends StatelessWidget {
                 Obx(
                   () => _buildVerseCard(controller.todayVerse.value, theme),
                 ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Column(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () =>
+                            Get.to(() => WidgetCustomizationScreen()),
+                        icon: const Icon(Icons.palette_outlined),
+                        label: const Text('Customize Widget'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: controller.refreshVerse,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Refresh Verse'),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -41,7 +67,29 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVerseCard(Verse verse, ThemeData theme) {
+  Widget _buildVerseCard(Verse? verse, ThemeData theme) {
+    if (verse == null) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primaryContainer.withOpacity(0.3),
+              theme.colorScheme.primaryContainer.withOpacity(0.1),
+            ],
+          ),
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -81,7 +129,7 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      verse.name,
+                      verse?.name ?? '',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: theme.colorScheme.primary,
@@ -100,7 +148,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  verse.text,
+                  verse?.text ?? '',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     height: 1.6,
                     fontWeight: FontWeight.w500,
@@ -108,7 +156,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  verse.reference,
+                  verse?.reference ?? '',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.primary.withOpacity(0.7),
                     fontWeight: FontWeight.w500,

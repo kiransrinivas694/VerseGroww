@@ -2,47 +2,80 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/history_controller.dart';
 import '../models/history_entry.dart';
+import '../bindings/history_binding.dart';
 
-class HistoryScreen extends StatelessWidget {
-  HistoryScreen({super.key}) {
-    Get.put(HistoryController());
-  }
+class HistoryScreen extends GetView<HistoryController> {
+  const HistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final HistoryController controller = Get.find<HistoryController>();
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: NotificationListener<ScrollNotification>(
+    return RefreshIndicator(
+      onRefresh: controller.loadInitialData,
+      child: NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
-          if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+          if (!controller.isLoading.value &&
+              controller.hasMore.value &&
+              scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
             controller.loadMoreData();
           }
           return true;
         },
         child: Obx(
-          () => ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: controller.entries.length + 1,
-            itemBuilder: (context, index) {
-              if (index == controller.entries.length) {
-                if (controller.isLoading.value) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }
+          () => controller.entries.isEmpty
+              ? _buildEmptyState(theme)
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: controller.entries.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == controller.entries.length) {
+                      if (controller.isLoading.value) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }
 
-              final entry = controller.entries[index];
-              return _buildHistoryCard(entry, theme);
-            },
-          ),
+                    final entry = controller.entries[index];
+                    return _buildHistoryCard(entry, theme);
+                  },
+                ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.history,
+            size: 64,
+            color: theme.colorScheme.primary.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No History Yet',
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your daily verses will appear here',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -88,34 +121,44 @@ class HistoryScreen extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Journal Entry',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      entry.journalEntry,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        height: 1.5,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 8),
+              Text(
+                entry.reference,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+              if (entry.journalEntry.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Journal Entry',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        entry.journalEntry,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.5,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               Text(
                 _formatDate(entry.date),

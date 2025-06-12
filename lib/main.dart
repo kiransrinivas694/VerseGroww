@@ -1,11 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'views/entry_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'config/app_theme.dart';
 import 'controllers/theme_controller.dart';
+import 'controllers/auth_controller.dart';
+import 'routes/app_routes.dart';
+import 'views/auth/login_screen.dart';
+import 'views/entry_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  String supabaseUrl = '';
+  String supabaseAnonKey = '';
+
+  try {
+    // Try to load from .env file
+    await dotenv.load(fileName: ".env");
+    supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+    supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+  } catch (e) {
+    // If .env file is not found, use hardcoded values temporarily
+
+    print('catch error in dotenv file -> ${e.toString()}');
+    supabaseUrl = 'REPLACE_WITH_YOUR_SUPABASE_URL';
+    supabaseAnonKey = 'REPLACE_WITH_YOUR_SUPABASE_ANON_KEY';
+  }
+
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    throw Exception(
+        'Supabase URL and Anon Key must be provided. Either create a .env file or replace the hardcoded values in main.dart');
+  }
+
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+  );
+
   Get.put(ThemeController());
+  Get.put(AuthController());
   runApp(const MyApp());
 }
 
@@ -16,6 +50,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeController themeController = Get.find<ThemeController>();
+    final AuthController authController = Get.find<AuthController>();
 
     return Obx(
       () => GetMaterialApp(
@@ -23,7 +58,11 @@ class MyApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: themeController.themeMode,
-        home: EntryScreen(),
+        home: authController.isAuthenticated
+            ? EntryScreen()
+            : const LoginScreen(),
+        getPages: AppRoutes.routes,
+        debugShowCheckedModeBanner: false,
       ),
     );
   }

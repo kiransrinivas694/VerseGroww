@@ -72,6 +72,13 @@ class HomeView extends GetView<HomeController> {
       ),
       body: Obx(() {
         final verse = controller.todayVerse.value;
+
+        if (verse == null) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),

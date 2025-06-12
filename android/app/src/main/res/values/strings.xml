@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VerseGroww</string>
+    <!-- Android Client ID for Google Sign-In -->
+    <string name="server_client_id">719942468003-7kn88vsdhiugndpu0d0d71aqascsp7h2.apps.googleusercontent.com</string>
+</resources> 
